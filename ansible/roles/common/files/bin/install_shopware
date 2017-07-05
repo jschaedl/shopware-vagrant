@@ -1,7 +1,44 @@
 #!/usr/bin/env bash
 set -e
+
+
+# install shopware from latest master
+
 cd /home/vagrant/www
+
+echo "Download Shopware latest master"
 git clone https://github.com/shopware/shopware.git
+
+echo "Build Shopware latest master"
 cd shopware/build/
 ant write-properties -Dapp.host=192.168.33.10 -Dapp.path=/shopware -Ddb.name=shopware -Ddb.host=localhost -Ddb.user=root -Ddb.password=shopware
 ant build-unit
+
+
+# install shopware version 5.2.26
+
+SW_VERSION=5.2.26
+SW_ARCHIVE=v$SW_VERSION.zip
+
+cd /home/vagrant/www
+
+echo "Download Shopware Version $SW_VERSION"
+wget -q https://github.com/shopware/shopware/archive/$SW_ARCHIVE
+
+echo "Unzip Shopware Files Version $SW_VERSION"
+unzip $SW_ARCHIVE && rm -f $SW_ARCHIVE
+
+echo "Build Shopware Version $SW_VERSION"
+cd shopware-$SW_VERSION/build/
+ant write-properties -Dapp.host=192.168.33.10 -Dapp.path=/shopware-$SW_VERSION -Ddb.name=shopware-${SW_VERSION//./} -Ddb.host=localhost -Ddb.user=root -Ddb.password=shopware
+ant build-unit
+
+echo "Download images"
+cd /home/vagrant/www
+wget -O test_images.zip http://releases.s3.shopware.com/test_images.zip
+
+echo "Import images"
+unzip test_images.zip -d /home/vagrant/www/shopware
+unzip test_images.zip -d /home/vagrant/www/shopware-$SW_VERSION
+
+rm -f test_images.zip
